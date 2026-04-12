@@ -1,0 +1,66 @@
+小噪声：
+
+epoch 1，avg_loss = 0.005711，avg_psnr = 32.72 dB
+epoch 2，avg_loss = 0.000947，avg_psnr = 32.03 dB
+epoch 3，avg_loss = 0.000818，avg_psnr = 34.58 dB
+epoch 4，avg_loss = 0.000844，avg_psnr = 33.65 dB
+epoch 5，avg_loss = 0.000701，avg_psnr = 33.59 dB
+epoch 6，avg_loss = 0.000658，avg_psnr = 33.71 dB
+epoch 7，avg_loss = 0.000645，avg_psnr = 34.47 dB
+epoch 8，avg_loss = 0.000573，avg_psnr = 34.67 dB
+epoch 9，avg_loss = 0.000492，avg_psnr = 34.28 dB
+epoch 10，avg_loss = 0.000487，avg_psnr = 35.36 dB
+epoch 11，avg_loss = 0.000456，avg_psnr = 34.94 dB
+epoch 12，avg_loss = 0.000431，avg_psnr = 34.70 dB
+
+测试图像指标：
+
+图像 0806.png，尺寸 2040×1356，噪声标准差 0.048，PSNR = 30.23 dB
+图像 0816.png，尺寸 2040×1356，噪声标准差 0.027，PSNR = 35.63 dB
+图像 0898.png，尺寸 2040×1356，噪声标准差 0.006，PSNR = 41.62 dB
+
+
+中等噪声：
+
+epoch 1，avg_loss = 0.011830，avg_psnr = 24.16 dB
+epoch 2，avg_loss = 0.004031，avg_psnr = 25.58 dB
+epoch 3，avg_loss = 0.002805，avg_psnr = 27.13 dB
+epoch 4，avg_loss = 0.002529，avg_psnr = 27.50 dB
+epoch 5，avg_loss = 0.002055，avg_psnr = 27.67 dB
+epoch 6，avg_loss = 0.001963，avg_psnr = 28.33 dB
+epoch 7，avg_loss = 0.001901，avg_psnr = 28.17 dB
+epoch 8，avg_loss = 0.001847，avg_psnr = 27.82 dB
+epoch 9，avg_loss = 0.001691，avg_psnr = 28.59 dB
+epoch 10，avg_loss = 0.001690，avg_psnr = 28.05 dB
+epoch 11，avg_loss = 0.001649，avg_psnr = 28.91 dB
+epoch 12，avg_loss = 0.001636，avg_psnr = 28.97 dB
+
+测试图像指标：
+
+图像 0866.png，尺寸 1356×2040，噪声标准差 0.061，PSNR = 30.44 dB
+图像 0824.png，尺寸 2040×1356，噪声标准差 0.109，PSNR = 28.15 dB
+图像 0818.png，尺寸 2040×1536，噪声标准差 0.145，PSNR = 26.15 dB
+
+
+
+
+大噪声：
+
+epoch 1，avg_loss = 0.018928，avg_psnr = 21.75 dB
+epoch 2，avg_loss = 0.006945，avg_psnr = 22.58 dB
+epoch 3，avg_loss = 0.005687，avg_psnr = 22.75 dB
+epoch 4，avg_loss = 0.005692，avg_psnr = 23.98 dB
+epoch 5，avg_loss = 0.004729，avg_psnr = 23.95 dB
+epoch 6，avg_loss = 0.004689，avg_psnr = 23.64 dB
+epoch 7，avg_loss = 0.004668，avg_psnr = 24.45 dB
+epoch 8，avg_loss = 0.004357，avg_psnr = 24.54 dB
+epoch 9，avg_loss = 0.003926，avg_psnr = 24.81 dB
+epoch 10，avg_loss = 0.003998，avg_psnr = 25.14 dB
+epoch 11，avg_loss = 0.003968，avg_psnr = 24.79 dB
+epoch 12，avg_loss = 0.003881，avg_psnr = 24.17 dB
+
+测试图像指标：
+
+图像 0857.png，尺寸 2040×1416，噪声标准差 0.264，PSNR = 25.66 dB
+图像 0895.png，尺寸 2040×1284，噪声标准差 0.282，PSNR = 21.09 dB
+图像 0858.png，尺寸 2040×1356，噪声标准差 0.265，PSNR = 24.78 dB
