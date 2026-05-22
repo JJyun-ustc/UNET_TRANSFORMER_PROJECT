@@ -19,6 +19,8 @@ denoised = noisy - pred_noise
 
 ### 2. 模型结构分析
 
+![UNet-Transformer 模型结构图](model.png)
+
 #### 2.1 主体结构
 
 模型定义在 [src/ut_project/models/unet_transformer.py](/d:/python%20code/unet_transformer_project/src/ut_project/models/unet_transformer.py) 中，整体结构是一个三层下采样的 UNet：
@@ -48,7 +50,7 @@ UNet 的作用主要是：
 4. 再恢复成二维特征图
 5. 通过残差方式与卷积瓶颈输出融合
 
-这样做的意义是：
+这样做可以使得：
 
 - 卷积负责局部细节建模
 - Transformer 负责全局上下文建模
@@ -89,7 +91,7 @@ UNet 的作用主要是：
 3. 在线加入高斯噪声
 4. 让模型预测实际噪声
 
-这种做法的优点是：
+这种做可以使：
 
 - 数据利用更灵活
 - 同一张图可以在不同轮次遇到不同噪声强度
@@ -214,7 +216,7 @@ UNet 的作用主要是：
 - 使用验证集固定样本做评估
 - 按 `avg_psnr` 或验证集性能保存 `best_model`
 
-这样做的好处是：
+这样做使得：
 
 - 曲线更稳定
 - best model 更可靠
@@ -512,4 +514,3 @@ python infer.py --checkpoint checkpoints/small/unet_transformer_best.pth --noise
 python infer.py --checkpoint checkpoints/medium/unet_transformer_best.pth --noise-level medium
 python infer.py --checkpoint checkpoints/large/unet_transformer_best.pth --noise-level large
 ```
-
