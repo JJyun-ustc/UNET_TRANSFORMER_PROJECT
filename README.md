@@ -1,6 +1,6 @@
 # UNet-Transformer SIDD 图像去噪项目
 
-本项目使用 `UNet + Transformer` 混合模型完成 sRGB 图像去噪。模型底层结构保持不变：输入 noisy 图像，网络输出噪声残差，再通过
+本项目使用 `UNet + Transformer` 混合模型完成 sRGB 图像去噪。通过
 
 ```python
 denoised = noisy - pred_noise
@@ -54,6 +54,17 @@ pip install -r requirements.txt
 
 ## 训练
 
+第一次运行前建议先确认数据都在默认位置：
+
+```text
+image/train_data/Data
+image/ValidationNoisyBlocksSrgb.mat
+image/ValidationGtBlocksSrgb.mat
+image/SIDD_Benchmark_Data
+```
+
+开始训练：
+
 ```bash
 python train.py
 ```
@@ -80,7 +91,41 @@ python train.py ^
 
 其中 best checkpoint 按验证集 PSNR 保存。
 
-## 推理与验证抽样
+## 验证与推理
+
+### 全量验证
+
+`infer.py` 默认使用 SIDD validation blocks。SIDD validation 通常包含 40 组图像块，每组 32 个 block，共 1280 个验证块。
+
+一次跑完整验证集并打印指标：
+
+```bash
+python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --validate-all
+```
+
+同时保存逐块指标 CSV：
+
+```bash
+python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --validate-all --metrics-output outputs/sidd_val_metrics.csv
+```
+
+输出指标包括：
+
+- `validated blocks`：验证块数量
+- `avg_psnr`：平均 PSNR
+- `min_psnr`：最低 PSNR
+- `max_psnr`：最高 PSNR
+- `avg_mse`：平均 MSE
+
+### 抽样可视化
+
+不传 `--input` 且不加 `--validate-all` 时，脚本会从 SIDD 验证 `.mat` 中随机抽样展示 noisy / denoised / GT：
+
+```bash
+python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --num-samples 3
+```
+
+### 单图推理
 
 对单张真实 noisy 图像去噪：
 
@@ -92,12 +137,6 @@ python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --input 
 
 ```bash
 python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --input noisy.png --target gt.png --output denoised.png
-```
-
-不传 `--input` 时，脚本会从 SIDD 验证 `.mat` 中随机抽样展示 noisy / denoised / GT：
-
-```bash
-python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --num-samples 3
 ```
 
 ## 生成 SIDD Benchmark 提交文件
@@ -116,9 +155,36 @@ image/Submit/SubmitSrgb.mat
 
 该文件包含官方 sRGB benchmark 需要的 `DenoisedBlocksSrgb`、`TimeMPSrgb` 和 `OptionalData`，可用于提交到 SIDD benchmark 页面。
 
-## 当前实现要点
+## 推荐完整流程
 
-- 不再在线合成高斯噪声。
-- 训练目标为真实噪声残差：`target_noise = noisy - clean`。
-- 验证使用官方 SIDD validation blocks。
-- 模型结构文件 `src/ut_project/models/unet_transformer.py` 与底层 block 设计保持不变。
+1. 安装依赖：
+
+```bash
+pip install -r requirements.txt
+```
+
+2. 训练模型：
+
+```bash
+python train.py --epochs 50 --batch-size 8 --patch-size 256 --pairs-per-image 4
+```
+
+3. 全量验证并保存指标：
+
+```bash
+python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --validate-all --metrics-output outputs/sidd_val_metrics.csv
+```
+
+4. 抽样查看视觉效果：
+
+```bash
+python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --num-samples 3
+```
+
+5. 生成 benchmark 提交文件：
+
+```bash
+python submit_sidd.py --checkpoint checkpoints/sidd/unet_transformer_best.pth
+```
+
+6. 提交 `image/Submit/SubmitSrgb.mat` 到 SIDD benchmark。

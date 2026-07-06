@@ -1,4 +1,5 @@
 import argparse
+import csv
 import random
 import sys
 from pathlib import Path
@@ -6,6 +7,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import torch
 from PIL import Image
+from torch.utils.data import DataLoader
 from torchvision import transforms
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -28,6 +30,9 @@ def parse_args():
     parser.add_argument("--val-noisy-mat", type=Path, default=DEFAULT_VAL_NOISY_MAT)
     parser.add_argument("--val-gt-mat", type=Path, default=DEFAULT_VAL_GT_MAT)
     parser.add_argument("--num-samples", type=int, default=3)
+    parser.add_argument("--validate-all", action="store_true", help="Run the full SIDD validation set and print metrics.")
+    parser.add_argument("--val-batch-size", type=int, default=8)
+    parser.add_argument("--metrics-output", type=Path, default=None, help="Optional CSV path for per-block metrics.")
     parser.add_argument("--base-channels", type=int, default=32)
     parser.add_argument("--embed-dim", type=int, default=128)
     parser.add_argument("--num-heads", type=int, default=4)
@@ -50,6 +55,60 @@ def tensor_to_pil(x: torch.Tensor) -> Image.Image:
 def denoise_tensor(model, noisy: torch.Tensor):
     pred_noise = model(noisy)
     return torch.clamp(noisy - pred_noise, 0.0, 1.0)
+
+
+def calculate_mse(img1: torch.Tensor, img2: torch.Tensor):
+    return torch.mean((img1 - img2) ** 2).item()
+
+
+def validate_all_blocks(model, device, noisy_mat: Path, gt_mat: Path, batch_size: int, metrics_output: Path | None):
+    dataset = SIDDValidationBlocksDataset(noisy_mat=noisy_mat, gt_mat=gt_mat)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=0, pin_memory=True)
+    rows = []
+    total_psnr = 0.0
+    total_mse = 0.0
+    min_psnr = float("inf")
+    max_psnr = float("-inf")
+    block_count = 0
+
+    with torch.no_grad():
+        for batch_index, (noisy, clean) in enumerate(loader):
+            noisy = noisy.to(device, non_blocking=True)
+            clean = clean.to(device, non_blocking=True)
+            denoised = denoise_tensor(model, noisy)
+
+            for item_index, (clean_image, denoised_image) in enumerate(zip(clean, denoised)):
+                block_index = batch_index * batch_size + item_index
+                psnr = calculate_psnr(clean_image.cpu(), denoised_image.cpu())
+                mse = calculate_mse(clean_image.cpu(), denoised_image.cpu())
+                rows.append(
+                    {
+                        "block_index": block_index,
+                        "psnr_db": f"{psnr:.6f}",
+                        "mse": f"{mse:.8f}",
+                    }
+                )
+                total_psnr += psnr
+                total_mse += mse
+                min_psnr = min(min_psnr, psnr)
+                max_psnr = max(max_psnr, psnr)
+                block_count += 1
+
+    avg_psnr = total_psnr / max(block_count, 1)
+    avg_mse = total_mse / max(block_count, 1)
+    print(f"validated blocks: {block_count}")
+    print(f"avg_psnr: {avg_psnr:.2f} dB")
+    print(f"min_psnr: {min_psnr:.2f} dB")
+    print(f"max_psnr: {max_psnr:.2f} dB")
+    print(f"avg_mse: {avg_mse:.8f}")
+
+    if metrics_output is not None:
+        metrics_output.parent.mkdir(parents=True, exist_ok=True)
+        with metrics_output.open("w", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, fieldnames=["block_index", "psnr_db", "mse"])
+            writer.writeheader()
+            writer.writerows(rows)
+        print(f"saved validation metrics to: {metrics_output}")
 
 
 def show_validation_samples(model, device, noisy_mat: Path, gt_mat: Path, num_samples: int):
@@ -119,6 +178,17 @@ def main():
     model.eval()
 
     if args.input is None:
+        if args.validate_all:
+            validate_all_blocks(
+                model,
+                device,
+                noisy_mat=args.val_noisy_mat,
+                gt_mat=args.val_gt_mat,
+                batch_size=args.val_batch_size,
+                metrics_output=args.metrics_output,
+            )
+            return
+
         show_validation_samples(
             model,
             device,
