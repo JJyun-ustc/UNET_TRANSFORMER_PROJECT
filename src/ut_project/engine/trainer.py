@@ -13,14 +13,6 @@ def set_seed(seed: int = 42):
         torch.cuda.manual_seed_all(seed)
 
 
-def add_random_noise(x: torch.Tensor, min_std: float, max_std: float):
-    noise_level = torch.empty((x.size(0), 1, 1, 1), device=x.device).uniform_(min_std, max_std)
-    noise = torch.randn_like(x) * noise_level
-    noisy = torch.clamp(x + noise, 0.0, 1.0)
-    actual_noise = noisy - x
-    return noisy, actual_noise, noise_level
-
-
 def calculate_psnr(img1: torch.Tensor, img2: torch.Tensor):
     mse = torch.mean((img1 - img2) ** 2).item()
     if mse == 0:
@@ -46,13 +38,9 @@ class Trainer:
         total_images = 0
 
         with torch.no_grad():
-            for clean in self.test_loader:
+            for noisy, clean in self.test_loader:
+                noisy = noisy.to(self.device, non_blocking=True)
                 clean = clean.to(self.device, non_blocking=True)
-                noisy, _, _ = add_random_noise(
-                    clean,
-                    min_std=self.config.noise_min,
-                    max_std=self.config.noise_max,
-                )
                 pred_noise = self.model(noisy)
                 denoised = torch.clamp(noisy - pred_noise, 0.0, 1.0)
 
@@ -63,19 +51,16 @@ class Trainer:
         return total_psnr / max(total_images, 1)
 
     def train(self):
-        best_loss = float("inf")
+        best_psnr = float("-inf")
 
         for epoch in range(self.config.epochs):
             self.model.train()
             epoch_loss = 0.0
 
-            for step, clean in enumerate(self.train_loader, start=1):
+            for step, (noisy, clean) in enumerate(self.train_loader, start=1):
+                noisy = noisy.to(self.device, non_blocking=True)
                 clean = clean.to(self.device, non_blocking=True)
-                noisy, target_noise, noise_level = add_random_noise(
-                    clean,
-                    min_std=self.config.noise_min,
-                    max_std=self.config.noise_max,
-                )
+                target_noise = noisy - clean
                 pred_noise = self.model(noisy)
                 loss = self.criterion(pred_noise, target_noise)
 
@@ -89,8 +74,7 @@ class Trainer:
                     print(
                         f"epoch {epoch + 1}/{self.config.epochs}, "
                         f"step {step}/{len(self.train_loader)}, "
-                        f"loss = {loss.item():.6f}, "
-                        f"noise_std = {noise_level.mean().item():.4f}"
+                        f"loss = {loss.item():.6f}"
                     )
 
             epoch_loss /= max(len(self.train_loader), 1)
@@ -104,8 +88,8 @@ class Trainer:
             latest_path = self.checkpoint_dir / "unet_transformer_latest.pth"
             torch.save(self.model.state_dict(), latest_path)
 
-            if epoch_loss < best_loss:
-                best_loss = epoch_loss
+            if avg_psnr > best_psnr:
+                best_psnr = avg_psnr
                 best_path = self.checkpoint_dir / "unet_transformer_best.pth"
                 torch.save(self.model.state_dict(), best_path)
-                print(f"best model saved to: {best_path}")
+                print(f"best model saved to: {best_path} (val_psnr = {best_psnr:.2f} dB)")
