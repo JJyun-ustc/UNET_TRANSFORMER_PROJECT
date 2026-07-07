@@ -18,12 +18,13 @@ from ut_project.models import UNetTransformer
 
 
 BENCHMARK_URL = "http://130.63.97.225/share/SIDD_Blocks/BenchmarkNoisyBlocksSrgb.mat"
+DEFAULT_INPUT_FILE = PROJECT_ROOT / "image" / "BenchmarkNoisyBlocksSrgb.mat"
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Create Kaggle SIDD benchmark SubmitSrgb.csv from a trained checkpoint.")
     parser.add_argument("--checkpoint", type=Path, required=True)
-    parser.add_argument("--input-file", type=Path, default=PROJECT_ROOT / "BenchmarkNoisyBlocksSrgb.mat")
+    parser.add_argument("--input-file", type=Path, default=DEFAULT_INPUT_FILE)
     parser.add_argument("--output", type=Path, default=PROJECT_ROOT / "SubmitSrgb.csv")
     parser.add_argument("--url", type=str, default=BENCHMARK_URL)
     parser.add_argument("--batch-size", type=int, default=8)

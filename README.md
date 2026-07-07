@@ -48,7 +48,7 @@ pip install -r requirements.txt
 - 训练集：`image/train_data/Data`
 - 验证 noisy blocks：`image/ValidationNoisyBlocksSrgb.mat`
 - 验证 GT blocks：`image/ValidationGtBlocksSrgb.mat`
-- Kaggle Benchmark 输入块：`BenchmarkNoisyBlocksSrgb.mat`
+- Kaggle Benchmark 输入块：`image/BenchmarkNoisyBlocksSrgb.mat`
 - MATLAB Benchmark 输入：`image/SIDD_Benchmark_Data`
 - MATLAB Benchmark block 坐标：`image/SIDD_Benchmark_Code_v1.2/BenchmarkBlocks32.mat`
 
@@ -151,7 +151,7 @@ python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --input 
 python submit_sidd_csv.py --checkpoint checkpoints/sidd/unet_transformer_best.pth
 ```
 
-如果当前目录没有 `BenchmarkNoisyBlocksSrgb.mat`，脚本会尝试从官方 URL 下载：
+如果 `image/BenchmarkNoisyBlocksSrgb.mat` 不存在，脚本会尝试从官方 URL 下载：
 
 ```text
 http://130.63.97.225/share/SIDD_Blocks/BenchmarkNoisyBlocksSrgb.mat
@@ -162,7 +162,7 @@ http://130.63.97.225/share/SIDD_Blocks/BenchmarkNoisyBlocksSrgb.mat
 ```bash
 python submit_sidd_csv.py ^
   --checkpoint checkpoints/sidd/unet_transformer_best.pth ^
-  --input-file BenchmarkNoisyBlocksSrgb.mat ^
+  --input-file image/BenchmarkNoisyBlocksSrgb.mat ^
   --output SubmitSrgb.csv
 ```
 
