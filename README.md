@@ -15,6 +15,7 @@ unet_transformer_project
 ├─ train.py
 ├─ infer.py
 ├─ submit_sidd.py
+├─ submit_sidd_csv.py
 ├─ requirements.txt
 ├─ image
 │  ├─ train_data
@@ -47,8 +48,9 @@ pip install -r requirements.txt
 - 训练集：`image/train_data/Data`
 - 验证 noisy blocks：`image/ValidationNoisyBlocksSrgb.mat`
 - 验证 GT blocks：`image/ValidationGtBlocksSrgb.mat`
-- Benchmark 输入：`image/SIDD_Benchmark_Data`
-- Benchmark block 坐标：`image/SIDD_Benchmark_Code_v1.2/BenchmarkBlocks32.mat`
+- Kaggle Benchmark 输入块：`BenchmarkNoisyBlocksSrgb.mat`
+- MATLAB Benchmark 输入：`image/SIDD_Benchmark_Data`
+- MATLAB Benchmark block 坐标：`image/SIDD_Benchmark_Code_v1.2/BenchmarkBlocks32.mat`
 
 `SIDDMediumDataset` 会递归查找 `*_NOISY_SRGB_*.PNG`，并匹配同目录下对应的 `*_GT_SRGB_*.PNG`。
 
@@ -141,7 +143,57 @@ python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --input 
 
 ## 生成 SIDD Benchmark 提交文件
 
-训练完成后运行：
+### Kaggle CSV 提交
+
+官方 Kaggle 提交流程要求读取 `BenchmarkNoisyBlocksSrgb.mat`，输出 `SubmitSrgb.csv`。本项目对应脚本是：
+
+```bash
+python submit_sidd_csv.py --checkpoint checkpoints/sidd/unet_transformer_best.pth
+```
+
+如果当前目录没有 `BenchmarkNoisyBlocksSrgb.mat`，脚本会尝试从官方 URL 下载：
+
+```text
+http://130.63.97.225/share/SIDD_Blocks/BenchmarkNoisyBlocksSrgb.mat
+```
+
+也可以手动下载后指定路径：
+
+```bash
+python submit_sidd_csv.py ^
+  --checkpoint checkpoints/sidd/unet_transformer_best.pth ^
+  --input-file BenchmarkNoisyBlocksSrgb.mat ^
+  --output SubmitSrgb.csv
+```
+
+输出文件：
+
+```text
+SubmitSrgb.csv
+```
+
+该 CSV 包含两列：
+
+- `ID`：block 编号
+- `BLOCK`：去噪结果的 base64 编码
+
+提交位置：
+
+```text
+kaggle.com/competitions/sidd-benchmark-srgb-psnr
+```
+
+可以先少量 block 做烟雾测试：
+
+```bash
+python submit_sidd_csv.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --limit-blocks 4 --output SubmitSrgb_test.csv
+```
+
+正式提交不要使用 `--limit-blocks`。
+
+### 旧 MATLAB MAT 提交
+
+如果需要兼容旧版 MATLAB benchmark 代码，可以继续生成 `SubmitSrgb.mat`：
 
 ```bash
 python submit_sidd.py --checkpoint checkpoints/sidd/unet_transformer_best.pth
@@ -181,10 +233,10 @@ python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --valida
 python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --num-samples 3
 ```
 
-5. 生成 benchmark 提交文件：
+5. 生成 Kaggle benchmark 提交文件：
 
 ```bash
-python submit_sidd.py --checkpoint checkpoints/sidd/unet_transformer_best.pth
+python submit_sidd_csv.py --checkpoint checkpoints/sidd/unet_transformer_best.pth
 ```
 
-6. 提交 `image/Submit/SubmitSrgb.mat` 到 SIDD benchmark。
+6. 提交 `SubmitSrgb.csv` 到 Kaggle SIDD benchmark。
