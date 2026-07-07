@@ -141,6 +141,26 @@ python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --input 
 python infer.py --checkpoint checkpoints/sidd/unet_transformer_best.pth --input noisy.png --target gt.png --output denoised.png
 ```
 
+## 查看模型计算图
+
+生成 UNet Transformer 的 Mermaid 结构图和逐层 shape/参数量表：
+
+```bash
+python visualize_model.py
+```
+
+默认输出：
+
+```text
+outputs/model_graph.md
+```
+
+在支持 Mermaid 的 Markdown 预览器中打开该文件即可看到计算图。默认输入尺寸为 `1x3x256x256`，也可以指定尺寸：
+
+```bash
+python visualize_model.py --height 512 --width 512
+```
+
 ## 生成 SIDD Benchmark 提交文件
 
 ### Kaggle CSV 提交
