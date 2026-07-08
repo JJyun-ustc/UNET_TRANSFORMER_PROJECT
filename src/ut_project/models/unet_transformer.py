@@ -12,7 +12,7 @@ class UNetTransformer(nn.Module):
         base_channels: int = 32,
         embed_dim: int = 128,
         num_heads: int = 4,
-        transformer_layers: int = 2,
+        transformer_layers: int = 4,
         ff_dim: int = 256,
         dropout: float = 0.0,
     ):

@@ -15,30 +15,31 @@ SRC_ROOT = PROJECT_ROOT / "src"
 if str(SRC_ROOT) not in sys.path:
     sys.path.insert(0, str(SRC_ROOT))
 
-from ut_project.config import DEFAULT_VAL_GT_MAT, DEFAULT_VAL_NOISY_MAT
+from ut_project.config import InferConfig
 from ut_project.data import SIDDValidationBlocksDataset
 from ut_project.engine.trainer import calculate_psnr
 from ut_project.models import UNetTransformer
 
 
 def parse_args():
+    config = InferConfig()
     parser = argparse.ArgumentParser(description="Run inference with a SIDD-trained UNet + Transformer denoiser.")
     parser.add_argument("--checkpoint", type=Path, required=True)
-    parser.add_argument("--input", type=Path, default=None, help="Noisy sRGB image path")
-    parser.add_argument("--target", type=Path, default=None, help="Optional clean/GT sRGB image path for PSNR")
-    parser.add_argument("--output", type=Path, default=None)
-    parser.add_argument("--val-noisy-mat", type=Path, default=DEFAULT_VAL_NOISY_MAT)
-    parser.add_argument("--val-gt-mat", type=Path, default=DEFAULT_VAL_GT_MAT)
-    parser.add_argument("--num-samples", type=int, default=3)
+    parser.add_argument("--input", type=Path, default=config.input_path, help="Noisy sRGB image path")
+    parser.add_argument("--target", type=Path, default=config.target_path, help="Optional clean/GT sRGB image path for PSNR")
+    parser.add_argument("--output", type=Path, default=config.output_path)
+    parser.add_argument("--val-noisy-mat", type=Path, default=config.val_noisy_mat)
+    parser.add_argument("--val-gt-mat", type=Path, default=config.val_gt_mat)
+    parser.add_argument("--num-samples", type=int, default=config.num_samples)
     parser.add_argument("--validate-all", action="store_true", help="Run the full SIDD validation set and print metrics.")
-    parser.add_argument("--val-batch-size", type=int, default=8)
-    parser.add_argument("--metrics-output", type=Path, default=None, help="Optional CSV path for per-block metrics.")
-    parser.add_argument("--base-channels", type=int, default=32)
-    parser.add_argument("--embed-dim", type=int, default=128)
-    parser.add_argument("--num-heads", type=int, default=4)
-    parser.add_argument("--transformer-layers", type=int, default=4)
-    parser.add_argument("--ff-dim", type=int, default=256)
-    parser.add_argument("--dropout", type=float, default=0.0)
+    parser.add_argument("--val-batch-size", type=int, default=config.val_batch_size)
+    parser.add_argument("--metrics-output", type=Path, default=config.metrics_output, help="Optional CSV path for per-block metrics.")
+    parser.add_argument("--base-channels", type=int, default=config.base_channels)
+    parser.add_argument("--embed-dim", type=int, default=config.embed_dim)
+    parser.add_argument("--num-heads", type=int, default=config.num_heads)
+    parser.add_argument("--transformer-layers", type=int, default=config.transformer_layers)
+    parser.add_argument("--ff-dim", type=int, default=config.ff_dim)
+    parser.add_argument("--dropout", type=float, default=config.dropout)
     return parser.parse_args()
 
 
